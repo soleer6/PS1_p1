@@ -127,3 +127,4 @@ class SecondWeekTests(TestCase):
         author = Author.objects.filter(last_name__contains='Asimov').first()
         response = self.client.get(author.get_absolute_url())
         self.assertIn(b'American writer Isaac Asimov', response.content)
+        
