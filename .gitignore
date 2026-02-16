@@ -23,3 +23,26 @@ db.sqlite3
 
 # Sistema
 .DS_Store
+
+# Environment variables
+.env
+
+# Python
+*.pyc
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Django
+db.sqlite3
+db.sqlite3-journal
+staticfiles/
+
+# Virtual Environment
+p1_env/
+venv/
+env/
+
+# IDEs
+.vscode/
+.idea/

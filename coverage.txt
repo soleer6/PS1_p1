@@ -1,0 +1,9 @@
+Name                Stmts   Miss  Cover
+---------------------------------------
+catalog/admin.py       24      0   100%
+catalog/forms.py       13      0   100%
+catalog/models.py      60      0   100%
+catalog/urls.py         4      0   100%
+catalog/views.py       98      0   100%
+---------------------------------------
+TOTAL                 199      0   100%

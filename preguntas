@@ -1,0 +1,5 @@
+¿Cuál es la forma correcta de modelar una relación 1-N en Django? - ForeignKey, en caso de 1-1 usat OnetoOneField 
+Cuál NO es un atributo válido al definir un modelo? - auto_date 
+Cual NO es una operación básicoa sobre el Modelo? - BookInstance.objects.all().remove : las operaciones se usan en las vistas y en los populat ej: .filter(title__icontains)
+Cual NO es una forma correcta de registrar un nuevo modelo en la sección ADMIN? - class BookAdmin(admin.ModelAdmin):
+En que fichero relacionamos las urls con las vistas?- url.py : se asocia cada url con la vista
