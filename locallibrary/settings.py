@@ -12,20 +12,25 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 import os
+from dotenv import load_dotenv
 import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Load environment variables from .env file
+env_path = BASE_DIR / '.env'
+if env_path.exists():
+    load_dotenv(env_path)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-bsex*s(i1hwf^1y4+#d0!1!-&5kp-7+sgjkb1t^w0cvdbb+8o%'
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-bsex*s(i1hwf^1y4+#d0!1!-&5kp-7+sgjkb1t^w0cvdbb+8o%')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DJANGO_DEBUG', 'True') != 'False'
 
 ALLOWED_HOSTS = ['127.0.0.1', '.onrender.com']
 CSRF_TRUSTED_ORIGINS = ['https://*.onrender.com']
@@ -40,6 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_extensions',  # Django extensions
     'catalog.apps.CatalogConfig',
 ]
 
@@ -77,19 +83,46 @@ WSGI_APPLICATION = 'locallibrary.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
+# Configuración de base de datos con sistema TESTING
+# Si TESTING=1 -> usa PostgreSQL local (desarrollo)
+# Si TESTING no está definido -> usa DATABASE_URL o NEON_URL (producción)
 
-# Configuración PostgreSQL
-db_from_env = dj_database_url.config(
-    default='postgres://alumnodb:alumnodb@localhost:5434/psi',
-    conn_max_age=500
-)
-DATABASES['default'].update(db_from_env)
+if os.environ.get('TESTING') == '1':
+    # Modo desarrollo/testing - usa PostgreSQL local
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=os.environ.get('POSTGRESQL_URL', 'postgres://alumnodb:alumnodb@localhost:5434/psi'),
+            conn_max_age=500,
+            conn_health_checks=True,
+        )
+    }
+else:
+    # Modo producción
+    if 'DATABASE_URL' in os.environ:
+        # Render proporciona DATABASE_URL
+        DATABASES = {
+            'default': dj_database_url.config(
+                conn_max_age=500,
+                conn_health_checks=True,
+            )
+        }
+    elif 'NEON_URL' in os.environ:
+        # Usar NEON_URL del .env
+        DATABASES = {
+            'default': dj_database_url.config(
+                default=os.environ.get('NEON_URL'),
+                conn_max_age=500,
+                conn_health_checks=True,
+            )
+        }
+    else:
+        # Fallback a SQLite (solo para desarrollo sin configuración)
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': BASE_DIR / 'db.sqlite3',
+            }
+        }
 
 
 # Password validation
@@ -126,7 +159,15 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATIC_URL = '/static/'
+
+# WhiteNoise storage
+STORAGES = {
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -138,21 +179,3 @@ LOGIN_REDIRECT_URL = '/'
 
 # Email backend for password reset (console)
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-
-# Static files
-STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATIC_URL = '/static/'
-
-# Database from environment
-if 'DATABASE_URL' in os.environ:
-    DATABASES['default'] = dj_database_url.config(
-        conn_max_age=500,
-        conn_health_checks=True,
-    )
-
-# WhiteNoise storage (opcional)
-STORAGES = {
-    "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
-    },
-}
